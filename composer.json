@@ -1,0 +1,23 @@
+{
+    "name": "ninoman/laravel-sortable",
+    "description": "Simple package to add ordering functionality to your Laravel models.",
+    "type": "library",
+    "keywords": ["laravel", "ordering", "sorting", "database"],
+    "require": {
+        "php": ">=7.0",
+        "illuminate/support": ">=5.5"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "ninoman",
+            "email": "arm.ninoyan@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Ninoman\\LaravelSortable\\": "src/"
+        }
+    }
+}
