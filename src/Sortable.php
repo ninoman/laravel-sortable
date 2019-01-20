@@ -7,46 +7,77 @@ use Illuminate\Database\Eloquent\Builder;
 trait Sortable
 {
     /**
-     * This property determines initial value of sorting
+     * this getter determines initial value of sorting
      *
-     * @var string
+     * Override $startSortingFrom property to change it
+     *
+     * @return int
      */
-    public $startSortingFrom = 1;
+    public function getSortingStartIndex(): int
+    {
+        return $this->startSortingFrom ?? 1;
+    }
 
     /**
-     * This property determines column which should be used for sorting
+     * This getter determines column which should be used for sorting
      *
-     * @var string
+     * Override $sortIndexColumn to change it
+     *
+     * @return string
      */
-    public $sortIndexColumn = 'sort_index';
+    public function getSortIndexColumn(): string
+    {
+        return $this->sortIndexColumn ?? 'sort_index';
+    }
 
     /**
-     * This property determines a column by which model sorting should be grouped (`null` stands for no grouping)
+     * This getter determines a column by which model sorting should be grouped (`null` stands for no grouping)
      * if you want a grouped sorting, assign a column name, by which you want a grouped sorting
      *
-     * @var string
+     * Override $sortingParentColumn property to change it
+     *
+     * @return string
      */
-    public $parentColumn = null;
+    public function getSortingParentColumn(): ?string
+    {
+        return $this->sortingParentColumn ?? null;
+    }
 
     /**
-     * This property determines if the model should be assign an order on creating or not
+     * This getter determines if the model should be assign an order on creating or not
      * set it to `false` to turn off that functionality
      *
-     * @var bool
+     * Override $setSortIndexOnCreating property to change it
+     *
+     * @return bool
      */
-    public $setSortIndexOnCreating = true;
+    public function getSetSortingIndexOnCreating(): bool
+    {
+        return $this->setSortIndexOnCreating ?? true;
+    }
 
     /**
-     * This property determines if other models should be resorted if this model's sorting index was change
-     * we have used it in our functions @see
+     * This property determines if other models should be resorted if this model's sorting index was changed
      *
-     * @var bool
+     * @var  bool
      */
-    public $resortOthers = true;
+    var $resortOthers = true;
 
+    protected static function bootSortable()
+    {
+        static::observe(SortableObserver::class);
+    }
+
+    /**
+     * This method is used to swap order of two models
+     *
+     * @param self $modelOne
+     * @param self $modelTwo
+     * @return void
+     */
     public static function swapSort(self $modelOne, self $modelTwo): void
     {
-        $sortingColumn = $modelOne->sortIndexColumn;
+        $sortingColumn = $modelOne->getSortIndexColumn();
         $indexOfOne = $modelOne->$sortingColumn;
         $indexOfTwo = $modelTwo->$sortingColumn;
 
@@ -63,21 +94,16 @@ trait Sortable
     {
         $builder = self::query();
 
-        if ($this->parentColumn) {
-            $builder->where($this->parentColumn, $this->{$this->parentColumn});
+        if ($this->getSortingParentColumn()) {
+            $builder->where($this->getSortingParentColumn(), $this->{$this->getSortingParentColumn()});
         }
 
-        return ($builder->latest($this->sortIndexColumn)->first()->{$this->sortIndexColumn} ?? $this->startSortingFrom - 1) + 1;
-    }
-
-    protected static function bootSortable()
-    {
-        self::observe(SortableObserver::class);
+        return ($builder->latest($this->getSortIndexColumn())->first()->{$this->getSortIndexColumn()} ?? $this->getSortingStartIndex() - 1) + 1;
     }
 
     public function scopeSameParentChild(Builder $builder): Builder
     {
-        return $this->parentColumn ? $builder->where($this->parentColumn, $this->{$this->parentColumn}) : $builder;
+        return $this->getSortingParentColumn() ? $builder->where($this->getSortingParentColumn(), $this->{$this->getSortingParentColumn()}) : $builder;
     }
 
     /**
@@ -87,7 +113,7 @@ trait Sortable
      */
     public function getSortIndexAttribute(): int
     {
-        return $this->{$this->sortIndexColumn};
+        return $this->{$this->getSortIndexColumn()};
     }
 
     /**
@@ -98,7 +124,7 @@ trait Sortable
      */
     public function setSortIndexAttribute(int $sortIndex): void
     {
-        $this->{$this->sortIndexColumn} = $sortIndex;
+        $this->{$this->getSortIndexColumn()} = $sortIndex;
     }
 
     /**
@@ -110,7 +136,7 @@ trait Sortable
      */
     public function scopeSorted(Builder $builder, string $direction = 'asc'): Builder
     {
-        return $builder->orderBy($this->sortIndexColumn, $direction);
+        return $builder->orderBy($this->getSortIndexColumn(), $direction);
     }
 
     /**
@@ -133,15 +159,15 @@ trait Sortable
     public function moveSortIndexUp(): int
     {
         // if model is already on top
-        if ($this->{$this->sortIndexColumn} == $this->startSortingFrom) {
-            return $this->{$this->sortIndexColumn};
+        if ($this->{$this->getSortIndexColumn()} == $this->getSortingStartIndex()) {
+            return $this->{$this->getSortIndexColumn()};
         }
 
         $this->update([
-            $this->sortIndexColumn => $this->{$this->sortIndexColumn} - 1
+            $this->getSortIndexColumn() => $this->{$this->getSortIndexColumn()} - 1
         ]);
 
-        return $this->{$this->sortIndexColumn};
+        return $this->{$this->getSortIndexColumn()};
     }
 
     /**
@@ -153,15 +179,15 @@ trait Sortable
     public function moveSortIndexDown(): int
     {
         // if model is already on bottom
-        if ($this->{$this->sortIndexColumn} == $this->getNextSortIndex() - 1) {
-            return $this->{$this->sortIndexColumn};
+        if ($this->{$this->getSortIndexColumn()} == $this->getNextSortIndex() - 1) {
+            return $this->{$this->getSortIndexColumn()};
         }
 
         $this->update([
-            $this->sortIndexColumn => $this->{$this->sortIndexColumn} + 1
+            $this->getSortIndexColumn() => $this->{$this->getSortIndexColumn()} + 1
         ]);
 
-        return $this->{$this->sortIndexColumn};
+        return $this->{$this->getSortIndexColumn()};
     }
 
     /**
@@ -173,10 +199,10 @@ trait Sortable
     public function toSortingTop(): int
     {
         $this->update([
-            $this->sortIndexColumn => $this->startSortingFrom
+            $this->getSortIndexColumn() => $this->getSortingStartIndex()
         ]);
 
-        return $this->{$this->sortIndexColumn};
+        return $this->{$this->getSortIndexColumn()};
     }
 
     /**
@@ -188,10 +214,10 @@ trait Sortable
     public function toSortingBottom(): int
     {
         $this->update([
-            $this->sortIndexColumn => $this->getNextSortIndex() - 1
+            $this->getSortIndexColumn() => $this->getNextSortIndex() - 1
         ]);
 
-        return $this->{$this->sortIndexColumn};
+        return $this->{$this->getSortIndexColumn()};
     }
 
     public function turnOffResortingOfOthers(): void
@@ -208,7 +234,7 @@ trait Sortable
     {
         $this->turnOffResortingOfOthers();
         $this->update([
-            $this->sortIndexColumn => $index
+            $this->getSortIndexColumn() => $index
         ]);
         $this->turnOnResortingOfOthers();
     }

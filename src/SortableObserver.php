@@ -6,20 +6,20 @@ class SortableObserver
 {
     public function creating($model): void
     {
-        if ($model->setSortIndexOnCreating) {
-            $model->{$model->sortIndexColumn} = $model->getNextSortIndex();
+        if ($model->getSetSortingIndexOnCreating()) {
+            $model->{$model->getSortIndexColumn()} = $model->getNextSortIndex();
         }
     }
 
     public function deleted($model): void
     {
-        $model->sameParentChild()->where($model->sortIndexColumn, '>', $model->{$model->sortIndexColumn})->decrement($model->sortIndexColumn);
+        $model->sameParentChild()->where($model->getSortIndexColumn(), '>', $model->{$model->getSortIndexColumn()})->decrement($model->getSortIndexColumn());
     }
 
     public function updating($model): void
     {
-        if ($model->isDirty($model->sortIndexColumn) && $model->resortOthers) {
-            if ($model->{$model->sortIndexColumn}> $model->getOriginal($model->sortIndexColumn)) {
+        if ($model->isDirty($model->getSortIndexColumn()) && $model->resortOthers) {
+            if ($model->{$model->getSortIndexColumn()}> $model->getOriginal($model->getSortIndexColumn())) {
                 $this->decrementSortIndex($model);
             } else {
                 $this->incrementSortIndex($model);
@@ -30,16 +30,16 @@ class SortableObserver
     private function incrementSortIndex($model): void
     {
         $model->sameParentChild()
-            ->where($model->sortIndexColumn, '<', $model->getOriginal($model->sortIndexColumn))
-            ->where($model->sortIndexColumn, '>=', $model->{$model->sortIndexColumn})
-            ->increment($model->sortIndexColumn);
+            ->where($model->getSortIndexColumn(), '<', $model->getOriginal($model->getSortIndexColumn()))
+            ->where($model->getSortIndexColumn(), '>=', $model->{$model->getSortIndexColumn()})
+            ->increment($model->getSortIndexColumn());
     }
 
     private function decrementSortIndex($model): void
     {
         $model->sameParentChild()
-            ->where($model->sortIndexColumn, '>', $model->getOriginal($model->sortIndexColumn))
-            ->where($model->sortIndexColumn, '<=', $model->{$model->sortIndexColumn})
-            ->decrement($model->sortIndexColumn);
+            ->where($model->getSortIndexColumn(), '>', $model->getOriginal($model->getSortIndexColumn()))
+            ->where($model->getSortIndexColumn(), '<=', $model->{$model->getSortIndexColumn()})
+            ->decrement($model->getSortIndexColumn());
     }
 }

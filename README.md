@@ -78,7 +78,7 @@ class Post extends Eloquent
 {
     use Sortable;
     
-    public $parentColumn = 'user_id';
+    public $sortingParentColumn = 'user_id';
     
     ...
 }
@@ -119,3 +119,34 @@ $myModel->moveSortIndexUp();
 $myModel->toSortingTop();
 $myModel->toSortingBottom();
 ```
+
+And of course you can just update your model's property, which is responsible for sort index and all other entities will be reordered automatically.
+```php
+use Ninoman\LaravelSortable\Sortable;
+
+class MyModel extends Eloquent
+{
+    use Sortable;
+    
+    public $sortIndexColumn = 'order';
+    
+    ...
+}
+
+$one = $myModel::create([...]); //order 1 
+$two = $myModel::create([...]); //order 2 
+$three = $myModel::create([...]); //order 3 
+$four = $myModel::create([...]); //order 4
+
+$four->update(['order' => 2]);
+//$one -> order 1;
+//$four -> order 2;
+//$two -> order 3;
+//$three -> order 4;
+```
+
+##### Conclusions
+
+It's a lightweight, easy to use package which you can easily integrate into your application. Feel free to report about issues and possible improvements.
+
+Thank you!
