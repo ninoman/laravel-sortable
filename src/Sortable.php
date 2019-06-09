@@ -107,27 +107,6 @@ trait Sortable
     }
 
     /**
-     * An universal getter mutator for sorting column
-     *
-     * @return int
-     */
-    public function getSortIndexAttribute(): int
-    {
-        return $this->{$this->getSortIndexColumn()};
-    }
-
-    /**
-     * An universal getter mutator for sorting column
-     *
-     * @param int $sortIndex
-     * @return void
-     */
-    public function setSortIndexAttribute(int $sortIndex): void
-    {
-        $this->{$this->getSortIndexColumn()} = $sortIndex;
-    }
-
-    /**
      * Use this scope to access your models sorted
      *
      * @param Builder $builder
